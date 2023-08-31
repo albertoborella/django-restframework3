@@ -14,16 +14,15 @@ from e_commerce.models import Comic, WishList
 
 
 class ComicSerializer(serializers.ModelSerializer):
-    # new_field =  serializers.SerializerMethodField()
-    
     class Meta:
         model = Comic
-        fields = ('marvel_id','title', 'description', 'price', 'stock_qty', 'picture')
-        # fields = ('marvel_id', 'title', 'algo')
+        fields = ('id','marvel_id','title', 'description', 'price', 'stock_qty', 'picture')
 
-    # def get_new_field(self, obj):
-    #     return {'hola':10}
-
+    def to_representation(self, instance):
+        data = super(ComicSerializer, self).to_representation(instance)
+        data.pop('description')
+        return data
+    
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

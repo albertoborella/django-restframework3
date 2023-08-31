@@ -34,4 +34,5 @@ urlpatterns = [
 
     # User API Viewsets:
     path('api/', include('e_commerce.api.routers')),
+    path('api/', include('e_commerce.api.comic_routers')),
 ]

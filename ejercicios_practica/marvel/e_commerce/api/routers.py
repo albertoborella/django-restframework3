@@ -7,7 +7,8 @@ from .viewsets import (
     CustomUserViewSet,
     UserViewSet,
     FilteringUserViewSet,
-    FilteringBackendUserViewSet
+    FilteringBackendUserViewSet,
+    ComicViewSet
 )
 
 # Con esto indicamos que el router se haga cargo de nuestras
@@ -40,4 +41,11 @@ router.register(
     FilteringUserViewSet,
     basename='genericviewset/users'
 )
+
+router.register(
+    r'genericviewset/comic',
+    ComicViewSet,
+    basename='genericviewset/comic/'
+)
+    
 urlpatterns = router.urls

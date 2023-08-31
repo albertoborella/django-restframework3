@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from e_commerce.models import User, Comic
+from .serializers import UserSerializer, UpdatePasswordUserSerializer, ComicSerializer 
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -17,8 +19,7 @@ from rest_framework.pagination import (
     PageNumberPagination
 )
 
-from e_commerce.models import User
-from .serializers import UserSerializer, UpdatePasswordUserSerializer
+
 
 
 # Genero una clase para configurar el paginado de la API.
@@ -244,3 +245,79 @@ class FilteringUserViewSet(viewsets.GenericViewSet):
             queryset = queryset.filter(is_staff=eval(_is_staff))
 
         return queryset
+    
+class ComicViewSet(viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ComicSerializer
+    queryset = Comic.objects.all()
+
+    def list(self,request):
+        return Response(
+            data = self.serializer_class(self.queryset, many=True).data,
+            status=status.HTTP_200_OK
+        )
+
+    def create(self, request):
+        comic_serializer = self.serializer_class(data=request.data)
+        if comic_serializer.is_valid():
+            comic_serializer.save()
+            return Response(
+                data = comic_serializer.data,
+                status = status.HTTP_201_CREATED
+            )
+        return Response(
+            data = comic_serializer.errors,
+            status = status.HTTP_400_BAD_REQUEST
+        )
+        
+
+    def update(self, request, pk=None, *args, **kwargs):
+        # comic = get_object_or_404(self.queryset, pk=pk)
+        comic = self.queryset.filter(pk=pk).first()
+        comic_serializer = self.serializer_class(
+            instance = comic,
+            data = request.data
+        )
+        if comic_serializer.is_valid():
+            comic_serializer.save()
+            return Response(
+                data = comic_serializer.data,
+                status = status.HTTP_200_OK
+            )
+        return Response(
+            data = comic_serializer.errors,
+            status = status.HTTP_400_BAD_REQUEST
+        )
+        
+
+    def retrieve(self, request, pk=None):
+        comic = get_object_or_404(self.queryset, pk=pk)
+        return Response(
+            data = self.serializer_class(
+                instance = comic,
+                many = False
+            ).data,
+            status = status.HTTP_200_OK
+        )
+    
+    def destroy(self, request, pk=None):
+        self.queryset.filter(pk=pk).delete()
+        return Response(
+            data = {'message': 'the user was deleted successfully'},
+            status = status.HTTP_200_OK
+        )
+    
+
+class ListComicViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ComicSerializer
+    http_method_names = ['get']
+    queryset =  serializer_class.Meta.model.objects.all()
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    filterset_fields = {
+        "title": ("icontains",),
+        "marvel_id": ("exact",),
+        "stock_qty": ("gte",)
+    }
+    search_fields = ('title',)
+    ordering_fields = ('-marvel_id', 'title')
